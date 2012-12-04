@@ -1,0 +1,5 @@
+p #{name} create a new account #{user} on #{host}.
+p You can contact him at 
+    a(href="mailto:" + mail)= mail
+p To activate it 
+    a(href=url + "activate/?user=" + user + "&token=" + activation_token) click here

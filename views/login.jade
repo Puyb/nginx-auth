@@ -1,0 +1,15 @@
+extends layout
+
+block content
+    form(method="post")
+        label(for="user") User:
+        input(name="user")
+        br
+        label(for="password") Password:
+        input(name="password", type="password")
+        br
+        button(type="submit") Login
+        br
+        a(href="register/") Register
+        br
+        //a(href="reset/") Reset password

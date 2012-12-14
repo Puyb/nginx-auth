@@ -4,20 +4,18 @@ var fs = require('fs')
   , jade = require('jade')
   , utils = require('connect').utils;
 
-var smtpOptions = {
-    host: "mail.unimatrix.fr",
-    port: 10025,
-    auth: {
-        user: "puyb@puyb.net",
-        pass: "nahitoss"
-    }
-};
 
-var users = JSON.parse(fs.readFileSync('users.json'));
+var options = JSON.parse(fs.readFileSync('options.json'));
+var users = {};
+try {
+    console.log(options.passwd_file);
+    users = JSON.parse(fs.readFileSync(options.passwd_file) || '{}');
+} catch(e) {console.log(e)};
 
 exports.login = function(req, res) {
     if(req.route.method == 'post') {
         var shasum = crypto.createHash('sha512');
+        shasum.update(req.body.user || '');
         shasum.update(req.body.password || '');
         if(users[req.body.user] && 
                 shasum.digest('hex') == users[req.body.user].password &&
@@ -26,7 +24,7 @@ exports.login = function(req, res) {
                 var token = buf.toString('hex');
                 res.cookie('AUTH_COOKIE', token);
                 fs.writeFileSync(
-                    '/var/lib/nginx/cookies/' + token,
+                    options.nginx_cookie_path + token,
                     JSON.stringify({
                         user: req.body.user,
                         login : new Date()
@@ -50,6 +48,7 @@ exports.register = function(req, res) {
                    !users[req.body.user]) {
             
             var shasum = crypto.createHash('sha512');
+            shasum.update(req.body.user || '');
             shasum.update(req.body.password || '');
             users[req.body.user] = {
                 name: req.body.name,
@@ -62,13 +61,13 @@ exports.register = function(req, res) {
 
                 fs.writeFileSync('users.json', JSON.stringify(users));
 
-                var smtpTransport = nodemailer.createTransport("SMTP", smtpOptions);
+                var smtpTransport = nodemailer.createTransport("SMTP", options.smtp);
 
                 var mailOptions = {
-                    from: "Plonk",
-                    to: "puyb@puyb.net",
+                    from: options.from || "Auth",
+                    to: options.to,
                     subject: "New plonk user",
-                    html: jade.compile(fs.readFileSync('views/mails/new_account.jade'))(utils.merge(utils.merge({ user: req.body.user }, req.app.locals), users[req.body.user]))
+                    html: jade.compile(fs.readFileSync('views/mails/new_account.jade'))(utils.merge(utils.merge({ user: req.body.user }, options), users[req.body.user]))
                 }
 
                 // send mail with defined transport object
@@ -93,13 +92,13 @@ exports.activate = function(req, res) {
         
         fs.writeFileSync('users.json', JSON.stringify(users));
 
-        var smtpTransport = nodemailer.createTransport("SMTP", smtpOptions);
+        var smtpTransport = nodemailer.createTransport("SMTP", options.smtp);
 
         var mailOptions = {
-            from: "Plonk",
+            from: options.from || "Auth",
             to: users[req.query.user].mail,
             subject: "Your account is activated",
-            html: jade.compile(fs.readFileSync('views/mails/activated.jade'))(utils.merge(utils.merge({ user: req.query.user }, req.app.locals), users[req.query.user]))
+            html: jade.compile(fs.readFileSync('views/mails/activated.jade'))(utils.merge(utils.merge({ user: req.query.user }, options), users[req.query.user]))
         }
 
         // send mail with defined transport object

@@ -6,12 +6,14 @@
 var express = require('express')
   , routes = require('./routes')
   , http = require('http')
-  , path = require('path');
+  , path = require('path')
+  , fs = require('fs');
 
 var app = express();
+var options = JSON.parse(fs.readFileSync('options.json'));
 
 app.configure(function(){
-  app.set('port', process.env.PORT || 3000);
+  app.set('port', options.port || process.env.PORT || 3000);
   app.set('views', __dirname + '/views');
   app.set('view engine', 'jade');
   app.use(express.favicon());
@@ -27,11 +29,7 @@ app.configure('development', function(){
   app.use(express.errorHandler());
 });
 
-app.locals({
-    title: 'Plonk login',
-    host: 'plonk',
-    url: 'http://plonk.puyb.net/auth/'
-});
+app.locals(JSON.parse(fs.readFileSync('options.json')));
 
 app.get('/', routes.login.login);
 app.post('/', routes.login.login);

@@ -1,10 +1,11 @@
 {
-    title: 'Login',
-    host: 'host',
-    url: 'http://host/auth/',
-    smtp_options: {
-        host: "localhost"
+    "title": "Login",
+    "host": "host",
+    "url": "http://host/auth/",
+    "smtp": {
+        "host": "localhost"
     },
-    passwd_file: 'users.json',
-    nginx_cookie_path: '/var/lib/nginx/cookies/'
+    "passwd_file": "users.json",
+    "nginx_cookie_path": "/var/lib/nginx/cookies/",
+    "to": "example@host.com"
 }
